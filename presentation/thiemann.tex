@@ -1,0 +1,241 @@
+\begin{frame}{Properties}
+\begin{itemize}
+    \item Algorithm to decide pattern completeness
+    \item \textbf{Input}: matching problems $(f(z), \ell)$
+    \begin{itemize}
+        \item For each LHS $\ell$ of TRS from $f$
+        \item $z$ some arbitrary constructor term
+    \end{itemize}
+    \item \textbf{Output}: success or failure
+    \item Flow: 
+    \begin{itemize}
+        \item Iteratively decompose terms until match/clash
+        \item If we encounter $z$ with $\ell$ not a variable, instantiate $z$ via $\sigma = \{z \mapsto c(x_1, ..., x_n) \}$ for each constructor $c$
+    \end{itemize}
+\end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Example I}
+Constructors: $0$, $s$, function $f$: $f(\textcolor{red}{0}) \rightarrow 0$ and $f(\textcolor{red}{s}(x)) \rightarrow x$
+
+\begin{block}{Algorithm}
+\begin{columns}[t]
+
+\begin{column}{.5\textwidth}
+\centering{
+    $(\textcolor{red}{f}(z), \textcolor{red}{f}(0))$\\
+    \onslide<2->{$(\textcolor{red}{z}, 0)$\\}
+
+    \vspace{0.5em}
+    \onslide<2->{\hrule{}}
+    \vspace{0.5em}
+
+    \begin{columns}[t]
+
+    \begin{column}{.5\textwidth}
+    \centering{
+        \onslide<3->{$(\textcolor{red}{0}, \textcolor{red}{0})$\\
+\textcolor{Green}{match}\\}
+    }
+    \end{column}
+    
+    \onslide<3->{\vrule{}}
+    
+    \begin{column}{.5\textwidth}
+    \centering{
+        \onslide<3->{$(\textcolor{red}{0}, \textcolor{red}{s}(x))$\\
+clash\\}
+    }
+    \end{column}
+    \end{columns}
+}
+\end{column}
+\vrule{}
+
+\begin{column}{.5\textwidth}
+\centering{
+    $(\textcolor{red}{f}(z), \textcolor{red}{f}(s(x)))$\\
+    \onslide<2->{$(\textcolor{red}{z}, s(x))$\\}
+
+    \vspace{0.5em}
+    \onslide<2->{\hrule{}}
+    \vspace{0.5em}
+
+    \begin{columns}[t]
+    
+    \begin{column}{.5\textwidth}
+    \centering{
+        \onslide<3->{$(\textcolor{red}{s}(z), \textcolor{red}{0})$\\
+clash\\}
+    }
+    \end{column}
+    
+    \onslide<3->{\vrule{}}
+    
+    \begin{column}{.5\textwidth}
+    \centering{
+        \onslide<3->{$(\textcolor{red}{s}(z), \textcolor{red}{s}(x))$\\
+$(\textcolor{red}{z}, \textcolor{red}{x})$\\
+        $\text{\textcolor{Green}{match}}^{\tiny{\sigma=\{x \mapsto z\}}}$}
+    }
+    \end{column}
+    
+    \end{columns}
+} 
+\end{column}
+\end{columns}
+\end{block}
+
+\onslide<4->{Result: \textbf{success}, since each constructor substitution for $z$ results in \textcolor{Green}{match}}
+
+\end{frame}
+
+\begin{frame}{Example II – Incomplete pattern}
+Constructors: $0$, $s$, function $f$: $f(\textcolor{red}{0}) \rightarrow 0$ (missing case for s(x)).
+
+\begin{block}{Algorithm}
+\centering{
+$(\textcolor{red}{f}(z), \textcolor{red}{f}(0))$ \\
+\onslide<2->{$(\textcolor{red}{z}, \textcolor{red}{0})$ \\}
+}
+
+\vspace{0.5em}
+\onslide<3->{\hrule{}}
+\vspace{0.5em}
+
+\begin{columns}[t]
+
+\begin{column}{.5\textwidth}
+\centering{
+\onslide<3->{$(\textcolor{red}{0}, \textcolor{red}{0})$ \\
+\textcolor{Green}{match}\\}
+}
+\end{column}
+
+\onslide<3->{\vrule{}}
+
+\begin{column}{.5\textwidth}
+\centering{
+\onslide<3->{$(\textcolor{red}{s}(z), \textcolor{red}{0})$ \\
+clash\\}
+}
+\end{column}
+
+\end{columns}
+\end{block}
+
+\onslide<4->{Result: \textbf{failure}, since there's no \textcolor{Green}{match}
+for substitution $\sigma = \{z \mapsto s(z)\}$}
+\end{frame}
+
+\begin{frame}{Example III – General case}
+Function $f$: with LHS $f(x, x)$ and $f(x, y)$\\
+
+Pattern $f(x, x)$ is called \textit{non-linear}, due to the repeated variable $x$
+
+\begin{block}{Algorithm}
+\begin{columns}[t] 
+
+\begin{column}{.5\textwidth}
+\centering{
+    $(\textcolor{red}{f}(a, b), \textcolor{red}{f}(x, x))$\\
+    \onslide<2->{$(a, \textcolor{red}{x}), (b, \textcolor{red}{x})$\\}
+    \onslide<3->{clash}
+}
+\end{column}
+\onslide<3->{\vrule{}}
+
+\begin{column}{.5\textwidth}
+\centering{
+    $(\textcolor{red}{f}(a, b), \textcolor{red}{f}(x, y))$\\
+    \onslide<2->{$(\textcolor{red}{a}, x), (\textcolor{red}{b}, y)$\\}
+    \onslide<3->{$\text{\textcolor{Green}{match}}^{\ \footnotesize \sigma_1 = \{x \mapsto a\}\ \sigma_2 = \{y \mapsto b\}}$}
+}
+\end{column}
+\end{columns}
+\end{block}
+
+\onslide<4->{
+\begin{itemize}
+    \item Result: \textbf{success}, since right-side matches both $a$ and $b$ (which are arbitrary constructor terms)
+    \item Left side results in clash since we cannot match variable x to both $a$ and $b$
+\end{itemize}
+}
+
+% \begin{footnotesize}
+% \begin{align*}
+% \onslide<2->{P &= \{\{\{(\textcolor{red}{f}(a, b), \textcolor{red}{f}(x, x))\}, \{(\textcolor{red}{f}(a, b), \textcolor{red}{f}(x, y))\}\}}\\
+% \onslide<3->{\text{decompose} &\Rrightarrow^{*} \{\{\{(a, \textcolor{red}{x}), (b, \textcolor{red}{x})\}, \{(a, x), (b, y)\}\}\}} \\
+% \onslide<4->{\textcolor{red}{clash'} &\Rrightarrow \{\{\textcolor{red}{\bot_{mp}}, \{(a, x), (b, y)\}\}\}} \\
+% \onslide<5->{\text{remove-mp} &\Rrightarrow \{\{\{(a, \textcolor{red}{x}), (b, \textcolor{red}{y})\}\}\}} \\
+% \onslide<6->{\text{match} &\Rrightarrow^{*} \{\textcolor{red}{\{\varnothing\}}\}} \\
+% \onslide<7->{\text{success} &\Rrightarrow^{*} \{\textcolor{red}{\top_{pp}}\}} \\
+% \onslide<8->{\text{remove-pp} &\Rrightarrow^{*} \varnothing}
+% \end{align*}
+% \end{footnotesize}
+
+\end{frame}
+
+% \begin{frame}{Steps}
+% Rewrite matching problems: 
+%     \begin{itemize}
+%         \item decompose: $(\textcolor{red}{f}(t_1, ..., t_n), \textcolor{red}{f}(l_1, ..., l_n)) \rightarrow (t_1, l_1), ..., (t_n, l_n)$
+%         \item match: $(\textcolor{red}{t}, \textcolor{red}{x}) \rightarrow \varnothing$
+%         \item clash: $(\textcolor{red}{f}(...), \textcolor{red}{g}(...)) \rightarrow \bot$
+%     \end{itemize}
+
+% Rewrite results of the matching problem reductions with:
+% \begin{itemize}
+%     \item $\bot \rightarrow \varnothing$
+%     \item $\varnothing \rightarrow \top$
+% \end{itemize}
+
+% Rewrite the remainder with:
+% \begin{itemize}
+%     \item failure: $\varnothing \rightarrow \bot$
+%     \item success: $\top \rightarrow \varnothing$
+%     \item instantiate: $pp \rightarrow$ Inst(pp,x) if $x, f(...)) \in pp$
+% \end{itemize}
+
+% \end{frame}
+
+% \begin{frame}{The algorithm – left linear case}
+% \begin{footnotesize}
+% For matching problems $mp$:
+% \begin{align*}
+% \textbf{decompose} & & \{(f(t_1, ..., t_n), f(l_1, ..., l_n))\} &\rightarrow \{(t_1, l_1), ..., (t_n, l_n)\} \\
+% \textbf{match} & & \{(t, x)\} &\rightarrow \varnothing \text{ if } \forall (t', l) \in mp \text{. } x \notin Var(l) \\
+% \textbf{clash} & & \{(f(...), g(...))\} &\rightarrow \bot_{mp}\text{ if }f \neq g
+% \intertext{For pattern problems $pp$:}
+% \textbf{remove-mp} & & \{\bot_{mp}\} &\rightarrow \varnothing \\
+% \textbf{success} & & \{\varnothing\} &\rightarrow \top_{pp}
+% \intertext{For sets of pattern problems $P$:}
+% \textbf{failure} & & \{\varnothing\} &\rightarrow \bot_P \\
+% \textbf{remove-pp} & & \{\top_{pp}\} &\rightarrow \varnothing \\
+% \textbf{instantiate} & & \{pp\} &\rightarrow \text{Inst$(pp,x)$ if }\{(x, f(...))\} \in pp
+% \end{align*}
+% \end{footnotesize}
+% \end{frame}
+
+% \begin{frame}{General case}
+% Following further rules are introduced:
+% \begin{footnotesize}
+% \begin{align*}
+% \textbf{clash'} & & \{(t,x), (t',x)\} \in mp &\rightarrow \bot_{mp}\text{ if $t$ and $t'$ clash} \\
+% \textbf{instantiate'} & & \{\{(t,x), (t',x)\}\} \in P &\rightarrow \text{Inst$(pp,x)$} \\
+% \textbf{failure'} & & \{pp\} \in P &\rightarrow \bot_P
+% \end{align*}
+% \end{footnotesize}
+
+% \begin{itemize}
+%     \item We apply \textbf{instantiate'} if $t$ and $t'$ differ in variable $x$ of finite sort.
+%     \item We apply \textbf{failure'}, if each $mp \in pp$ there exists $\{(t,x),(t',x)\}$ such that $t$ and $t'$ differ in variable $x$ of infinite sort. 
+%     \begin{itemize}
+%         \item We cannot instantiate a variable of infinite sort
+%         \item If not all matching problems differ in such a variable, we can mark those problems locally as $\bot_{mp}$ (via \textbf{clash'}).
+%     \end{itemize}
+% \end{itemize}
+% \end{frame}
+

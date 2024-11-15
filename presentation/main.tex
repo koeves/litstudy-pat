@@ -1,0 +1,124 @@
+\documentclass[onlytextwidth]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[dvipsnames]{xcolor}
+\usetheme{Berlin}
+
+\usepackage[sorting=none]{biblatex}
+\renewbibmacro{in:}{%
+  \ifentrytype{article}{}{\printtext{\bibstring{in}\intitlepunct}}}
+\addbibresource{cite.bib}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{keywordcolor}{rgb}{0.1, 0.1, 0.6}
+\definecolor{stringcolor}{rgb}{0.63, 0.125, 0.94}
+\definecolor{commentcolor}{rgb}{0.3, 0.4, 0.4}
+\definecolor{identifiercolor}{rgb}{0.0, 0.2, 0.4}
+\definecolor{backgroundcolor}{rgb}{0.97, 0.97, 0.97}
+
+\lstset{
+  language=Haskell,
+  backgroundcolor=\color{backgroundcolor},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{keywordcolor}\bfseries,
+  stringstyle=\color{stringcolor},
+  commentstyle=\color{commentcolor}\itshape,
+  identifierstyle=\color{identifiercolor},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=10pt,
+  showstringspaces=false,
+  tabsize=2,
+  breaklines=true,
+  breakatwhitespace=false,
+  morekeywords={data, type, newtype, deriving, where, let, in, do, module, import},
+  frame=single,
+  framesep=8pt,
+  xleftmargin=8pt,
+  xrightmargin=8pt
+}
+
+\graphicspath{{images/}}
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Outline}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\usenavigationsymbolstemplate{}
+
+\setbeamercovered{transparent}
+
+\title{Literature Study on Algorithms \\for Pattern Completeness}
+\author[Daniel Köves]{
+    Daniel Köves\\
+    \vspace*{0.3cm}
+    \scriptsize{Femke van Raamsdonk}\\
+    \scriptsize{Jörg Endrullis}
+}
+\institute{Vrije Universiteit Amsterdam}
+\date{November 2024}
+\logo{\includegraphics[height=1cm]{vu-griffioen.pdf}}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\section{Introduction}
+\include{intro}
+
+\section{Thiemann and Yamada's algorithm}
+\include{thiemann}
+
+\section{The complement algorithm}
+\include{complement}
+
+\section{Conclusion}
+\begin{frame}{Comparison}
+    \begin{itemize}
+        \item Both Thiemann and Yamada's and the complement algorithm can be used to decide pattern completeness
+        \item Complement algorithm's $N_{last}$ set contains patterns where $f$ still needs to be defined
+        \item Thiemann and Yamada's algorithm is proven to work for non-linear patterns, whereas complement algorithm might fail
+        \item Complement algorithm has built-in counterexample-generation
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+    \begin{itemize}
+        \item Literature study to compare algorithms for pattern completeness
+        \item Detailed comparison between Thiemann and Yamada's algorithm and the complement algorithm of Lazrek et al.
+        \item Further research could:
+            \begin{itemize}
+                \item Perform more thorough performance comparison between algorithms
+                \item More analysis as to why Thiemann and Yamada's version outperforms the other variants
+                \item Suggestion as per Thiemann and Yamada: construct a similar syntax-based algorithm to decide quasi-reducibility
+            \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Further notable work}
+    \begin{itemize}
+        \item Calculus of components by Thiel on which the complement algorithm by Lazrek et al is based on
+        \item Decidability of quasi-reducibility by Kapur et al.
+        \item Aota and Toyama introduce \textit{strong quasi-reducibility} 
+        \item Kop derives quasi-reducibility of logically constrained TRSs
+        \item Bouhoula et al. use tree-automata based algorithm to decide sufficient completeness
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+\nocite{*}
+\renewcommand*{\bibfont}{\scriptsize}
+\printbibliography
+\end{frame}
+
+\end{document}

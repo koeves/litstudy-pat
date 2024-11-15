@@ -1,0 +1,97 @@
+\begin{frame}{Properties}
+\begin{itemize}
+    \item Due to Lazrek et al.
+    \item Can be used to decide pattern completeness
+    \item \textbf{Input}: TRS $\mathcal{R}$ and defined symbol $f$
+    \item \textbf{Output}: Set of constructors where $f$ is not defined    
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Idea}
+    \begin{itemize}
+        \item Start with set $M_0$ with LHSs of function $f$, set $N_0$ $f(z_1, ..., z_n)$ where $z_i$ is some constructor term 
+        \item Try to unify elements of $m \in M_i$ and $n \in N_i$ with substitution $\sigma$
+        \item Compute \textit{complement} of this substitution $\rho$
+        \item Replace matched element in $N_i$ with new elements $n\rho$
+        \item Repeat until either $M_{last}$ or $N_{last}$ is empty, or no further unification is possible
+        \item If $M_{last}$ is empty but $N_{last}$ is not empty, $f$ is not defined on the terms in $N_{last}$
+    \end{itemize}
+\end{frame}
+
+% \begin{frame}{Definitions}
+% \begin{block}{Definition}
+% The \textit{complement} of a ground term $t = c_j(t_1, ... , t_n)$ given $\mathcal{C} = \{c_1, ..., c_n\}$, $1 \leq j \leq n$ is the set $C(t)$:
+% \begin{itemize}
+%     \item The complement of $x \in \mathcal{X}$ is $x$
+%     \item Otherwise the set $\{c_i(C(t_1), ..., C(t_n) \mid 1\leq i \leq n, i \neq j\}$
+% \end{itemize}
+% \end{block}
+
+% \begin{block}{Definition}
+%     The \textit{complement} of a substitution $\sigma$ is the set $C(\sigma)$ of  substitutions $\rho \neq \sigma$, with $\mathcal{D}om(\sigma) = \mathcal{D}om(\rho)$ mapping elements to complementary terms.
+% \end{block}
+
+% \end{frame}
+
+% \begin{frame}{The algorithm}
+% Initially set $M_0$ as the set of left-hand sides of $f$ and $N_0$ as the set of ground instances of $f$.
+% \begin{enumerate}
+%     \item Find substitution $\sigma$ to unify elements $m \in M_i$ and $n \in N_i$
+%     \item Construct $M_{i+1}$ and $N_{i+1}$:
+%     \begin{align*}
+%     M_{i+1} &= M_{i-1} \setminus \{m\} \cup \{m\rho \mid \rho \in C(\sigma), m\rho \neq m\sigma\} \\
+%     N_{i+1} &= N_{i-1} \setminus \{n\} \cup \{n\rho \mid \rho \in C(\sigma), n\rho \neq n\sigma\}
+%     \end{align*}
+%     \item Repeat until either $M_{last}$ or $N_{last}$ is empty, or no further unification is possible
+% \end{enumerate}
+% \end{frame}
+
+% \begin{frame}{Properties}
+% \begin{enumerate}
+%     \item Both $M_{last}$ and $N_{last}$ are empty, the definition of $f$ is \textit{sufficiently complete}
+%     \item If $M_{last}$ is empty but $N_{last}$ is not empty, $f$ is not defined on the terms in $N_{last}$
+% \end{enumerate}
+
+% Quasi-reducibility is determined when:
+
+% \begin{itemize}
+%     \item each input term is matched by the LHS of $f$ (point \textbf{1} – also pattern completeness), or
+%     \item elements of $N_{last}$ can further be reduced (point \textbf{2})
+% \end{itemize}
+% \end{frame}
+
+\begin{frame}{Example I - Linear case}
+Constructors: $0$, $s$, function $f$: $f(\textcolor{red}{0}) \rightarrow 0$ and $f(\textcolor{red}{s}(x)) \rightarrow x$
+
+\begin{block}{Algorithm}
+\begin{center}
+\begin{tabular}{ c || c | c || c | c }
+    & M & N & $\sigma$ & $\rho$ \\
+    \hline\hline
+    0 & $f(\textcolor{red}{0}), f(s(x))$ & $f(\textcolor{red}{z})$ & $z \mapsto 0$ & $z \mapsto s(z)$ \onslide<2->\\
+    1 & $f(\textcolor{red}{s}(x))$ & $f(\textcolor{red}{s}(z))$ & $z \mapsto x$ & \onslide<3->\\
+    2 &  $\varnothing$ & $\varnothing$ & & \onslide<4->\\
+\end{tabular}
+\end{center}
+\end{block}
+
+\onslide<4->{Result: \textbf{success}, $N_2$ is empty}
+\end{frame}
+
+\begin{frame}{Example II - Incomplete pattern}
+Constructors: $0$, $s$, function $f$: LHS $f(0)$ (missing case for $s(x)$).
+
+\begin{block}{Algorithm}
+\begin{center}
+\begin{tabular}{ c || c | c || c | c }
+    & M & N & $\sigma$ & $\rho$ \\
+    \hline\hline
+    0 & $f(\textcolor{red}{s}(x))$ & $f(\textcolor{red}{z})$ & $z \mapsto s(x)$ & $z \mapsto 0$ \onslide<2-> \\
+    1 & $\varnothing$ & $f(0)$ & & \onslide<3->\\
+\end{tabular}
+\end{center}
+\end{block}
+
+\onslide<3->{Result: \textbf{failure}, $N_1$ is not empty}
+\end{frame}
