@@ -2,7 +2,7 @@
 author:
 - |
   Daniel Köves  
-  [`d.koves@student.vu.nl`](mailto:d.koves@student.vu.nl)  
+  [`d.koves@student.vu.nl`](mailto:d.koves@vu.nl)  
   Supervisors  
   Femke van Raamsdonk  
   Jörg Endrullis
