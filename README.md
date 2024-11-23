@@ -2,13 +2,13 @@
 author:
 - |
   Daniel Köves  
-  [`d.koves@student.vu.nl`](mailto:d.koves@vu.nl)  
+  [`d.koves@student.vu.nl`](mailto:d.koves@student.vu.nl)  
   Supervisors  
   Femke van Raamsdonk  
   Jörg Endrullis
 bibliography:
 - cite.bib
-date: October 2024
+date: November 2024
 title: |
   Literature Study on Algorithms  
   for Pattern Completeness  
@@ -36,7 +36,7 @@ The main entry-point of the review is the paper by Thiemann and Yamada ,
 in which the authors present a novel algorithm to decide pattern
 completeness. The algorithm, described in detail in section
 <a href="#thiemann-yamada" data-reference-type="ref"
-data-reference="thiemann-yamada">2.1</a>, is compared against other
+data-reference="thiemann-yamada">3</a>, is compared against other
 implementations, namely the *complement algorithm* of Lazrek et al. .
 Moreover, tree automata-based solution proved useful at determining
 pattern completeness, therefore a short introduction at that
@@ -50,26 +50,28 @@ hand – pattern completeness and quasi-reducibility of term rewrite
 systems. The algorithm in the Thiemann and Yamada paper is explored in
 detail and analysed in section
 <a href="#thiemann-yamada" data-reference-type="ref"
-data-reference="thiemann-yamada">2.1</a>, whereas the complement
-algorithm is presented in the sections following it. The paper also
-briefly mentions further notable related work, such as
-quasi-reducibility and decidability thereof as presented by Kapur et al
-, further techniques for pattern matching and pattern completeness in
-section <a href="#notable-work" data-reference-type="ref"
-data-reference="notable-work">2.4</a>. Following the review, the main
+data-reference="thiemann-yamada">3</a>, whereas the complement algorithm
+is presented in the sections following it. The paper also briefly
+mentions further notable related work, such as quasi-reducibility and
+decidability thereof as presented by Kapur et al , further techniques
+for pattern matching and pattern completeness in section
+<a href="#notable-work" data-reference-type="ref"
+data-reference="notable-work">6</a>. Following the review, the main
 algorithms are compared and their differences are discussed in section
 <a href="#discussion" data-reference-type="ref"
-data-reference="discussion">3</a>, and finally, concluding remarks are
+data-reference="discussion">7</a>, and finally, concluding remarks are
 found in section <a href="#conclusion" data-reference-type="ref"
-data-reference="conclusion">4</a>.
+data-reference="conclusion">8</a>.
 
 The main focus of the review is to discuss algorithms for deciding
 pattern completeness. The notion of pattern completeness comes up in
 functional programming, namely, most languages that work by means of
-pattern matching require (or in other cases – warn) that the defined
-patterns are incomplete. Running a program with an incomplete pattern
-would result in untimely termination of the program with an exception.
-Figure <a href="#fig:haskell-incomplete" data-reference-type="ref"
+pattern matching require that the defined patterns are complete (and
+warn otherwise). Running a program with an incomplete pattern would
+result in untimely termination of the program with an exception. These
+runtime errors are the "worst" type of errors a program can encounter,
+therefore, it is crucial to ensure it does not happen. Figure
+<a href="#fig:haskell-incomplete" data-reference-type="ref"
 data-reference="fig:haskell-incomplete">1</a> shows such an example, the
 case matching `Nothing` is missing.
 
@@ -80,14 +82,13 @@ class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a 
 <figcaption>Haskell snippet with an incomplete pattern</figcaption>
 </figure>
 
-It is, therefore, crucial to ensure that patterns are complete. A
-related notion for term rewriting systems is quasi-reducibility
-introduced in , that ensures that the evaluation cannot get stuck. The
-difference between the two notions are discussed in section
+A notion related to pattern completeness is quasi-reducibility , that
+ensures that the evaluation cannot get stuck. The difference between the
+two notions are discussed in section
 <a href="#quasi-intro" data-reference-type="ref"
-data-reference="quasi-intro">1.3</a>.
+data-reference="quasi-intro">2.2</a>.
 
-## Preliminaries and Notation
+# Preliminaries
 
 Given a signature $`\Sigma`$ a set of function symbols $`f \in \Sigma`$
 and a set of variables $`\mathcal{X}`$, we say that terms
@@ -104,13 +105,6 @@ $`t`$ is defined as the set $`\{\epsilon\}`$ when $`t \in \mathcal{X}`$,
 otherwise the set
 $`\{\epsilon\} \cup \{ip \mid p \in \mathcal{P}os(t_i)\}`$. By $`t|_p`$
 we note the subterm of $`t`$ at position $`p`$.
-
-Given a set of sorts $`\mathcal{S}`$, a sorted set $`\mathcal{V}`$ is a
-set in which each element is associated with a sort
-$`\iota \in \mathcal{S}`$ written as $`v : \iota \in \mathcal{V}`$.
-Given a sorted signature $`\mathcal{F}`$ and sorted set of variables
-$`\mathcal{V}`$, we define sorted terms as
-$`\mathcal{T}(\mathcal{F}, \mathcal{V})`$.
 
 A substitution $`\sigma`$ is a mapping
 $`\mathcal{X} \rightarrow \mathcal{T}(\Sigma, \mathcal{X})`$. Notations
@@ -130,32 +124,17 @@ terms $`\mathcal{C}`$ are defined as $`\Sigma \setminus \mathcal{D}`$.
 Inputs to functions are therefore represented by constructor ground
 terms.
 
-<div class="example">
-
-**Example 1**. Consider the following term rewrite system representing
-Combinatory Logic $`\mathcal{R}_{CL}`$ given
-$`\Sigma = \{S, K, I, \cdot\}`$ with arities $`\{0,0,0,2\}`$ in this
-order. Rewrite rules are given as:
-``` math
-\begin{aligned}
-    I \cdot x &\rightarrow x \\
-    (K \cdot x) \cdot y &\rightarrow x \\
-    ((S \cdot x) \cdot y) \cdot z &\rightarrow (x \cdot z) \cdot (y \cdot z)
-\end{aligned}
-```
-
-</div>
-
 ## Pattern Completeness and the Pattern Problem
 
 The *matching problem* asks, given two terms $`s`$ and $`t`$, whether
-there exists a substitution $`\sigma`$ such that $`s\sigma = t`$. A
-matching problem $`mp`$ is represented as a set
+there exists a substitution $`\sigma`$ such that $`s\sigma = t`$. The
+direction is from $`s`$ to $`t`$, namely, we try to match $`s`$ to $`t`$
+by $`\sigma`$. A matching problem $`mp`$ is represented as a set
 $`\{(t_1, \ell_1), ..., (t_n, \ell_n)\} \subseteq \mathcal{T}(\mathcal{F}, \mathcal{V}) \times \mathcal{T}(\mathcal{F}, \mathcal{X})`$,
 assuming $`\mathcal{V}`$ and $`\mathcal{X}`$ do not overlap. A pattern
 problem $`pp`$ is a finite set of matching problems. A matching problem
 is complete, if given a constructor ground substitution
-$`\sigma : \mathcal{V} \mapsto \mathcal{T}(\mathcal{C})`$, there is
+$`\sigma : \mathcal{V} \mapsto \mathcal{T}(\mathcal{C})`$, there is a
 substitution $`\gamma : \mathcal{X} \mapsto \mathcal{T}(\mathcal{F})`$
 such that $`t\sigma = \ell\gamma`$ for all $`(t, \ell) \in mp`$. A
 pattern problem is complete if for each constructor ground substitution
@@ -163,19 +142,19 @@ $`\sigma`$ there is some $`mp \in pp`$ that is complete. A set $`P`$ of
 pattern problems is complete if all $`pp \in P`$ are complete.
 
 A program with left-hand sides $`L`$ is pattern complete, if every basic
-ground term of the form $`f(t_1, ..., t_n)`$ with $`f \in \mathcal{D}`$
-and
-$`\{t_1, ..., t_n\} \subseteq \mathcal{T}(\mathcal{C}, \mathcal{X})`$ is
-matched by some $`\ell \in L`$. The question whether a program with left
-hand sides $`L`$ and defined symbols $`\mathcal{D}`$ is pattern complete
-can be expressed with the following set of pattern problems:
+ground term – which are defined as terms of the form
+$`f(t_1, ..., t_n)`$ with $`f \in \mathcal{D}`$ and
+$`\{t_1, ..., t_n\} \subseteq \mathcal{T}(\mathcal{C}, \mathcal{X})`$ –,
+is matched by some $`\ell \in L`$. The question whether a program with
+left hand sides $`L`$ and defined symbols $`\mathcal{D}`$ is pattern
+complete can be expressed with the following set of pattern problems:
 ``` math
 P = \{\{\{(f(x_1, ..., x_n), \ell)\} \mid \ell \in L\} \mid f: \iota_1, ..., \iota_n \rightarrow \iota_0 \in \mathcal{D}\}
 ```
 
 <div id="example-even" class="example">
 
-**Example 2**. Consider as example the following sorted term rewrite
+**Example 1**. Consider as example the following sorted term rewrite
 system to calculate whether a natural number is even. The TRS
 $`\mathcal{R}_\mathbb{N}`$ is given as, adapted from Example 1 in :
 ``` math
@@ -187,7 +166,7 @@ $`\mathcal{R}_\mathbb{N}`$ is given as, adapted from Example 1 in :
 with the following rules:
 ``` math
 \begin{aligned}
-    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{true}
+    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{even}(x)
 \end{aligned}
 ```
 In this setting consider the following matching problems:
@@ -199,7 +178,8 @@ In this setting consider the following matching problems:
 Matching problem $`mp_1`$ is complete with respect to
 $`\sigma = \{z \mapsto 0\}`$, however $`mp_2`$ is incomplete since there
 exists no $`\sigma`$ such that $`\text{even}(x)^\sigma = 0`$. The set of
-pattern problems describing this program would be:
+pattern problems describing this program would be, where $`z`$ stands
+for some constructor ground term:
 ``` math
 P = \{\{\{(\text{even}(z), \text{even}(0))\}, \{(\text{even}(z), \text{even}(s(x)))\}, \{(\text{even}(z), \text{even}(s(s(x))))\}\}\}
 ```
@@ -208,22 +188,22 @@ P = \{\{\{(\text{even}(z), \text{even}(0))\}, \{(\text{even}(z), \text{even}(s(x
 
 ## Quasi-reducibility
 
-A related notion to pattern completeness is quasi-reducibility, the
+A notion related to pattern completeness is quasi-reducibility, the
 difference being that as per the definition in Section
 <a href="#def-pattern-complete" data-reference-type="ref"
-data-reference="def-pattern-complete">1.2</a>, pattern completeness does
+data-reference="def-pattern-complete">2.1</a>, pattern completeness does
 not allow for matching below the root term. This condition is relaxed
 when talking about quasi-reducibility. The notion of quasi-reducibility
 aligns with *sufficient* or *relative completeness* in . Take as example
 the extended version of Example
 <a href="#example-even" data-reference-type="ref"
-data-reference="example-even">2</a> for integers using
+data-reference="example-even">1</a> for integers using
 successor-predecessor notation, taken from Example 4 of the Thiemann and
 Yamada paper .
 
 <div id="quasi-ex-complete" class="example">
 
-**Example 3**. Given TRS $`\mathcal{R}_{\mathbb{Z}}`$ using
+**Example 2**. Given TRS $`\mathcal{R}_{\mathbb{Z}}`$ using
 ``` math
 \begin{aligned}
     \mathcal{C}_{\mathbb{Z}} &= \{\text{true}: \mathbb{B}, \text{false}: \mathbb{B}, 0: \mathbb{Z}, s: \mathbb{Z} \rightarrow \mathbb{N}, p: \mathbb{Z} \rightarrow \mathbb{N}\} \\
@@ -233,7 +213,7 @@ Yamada paper .
 with rules:
 ``` math
 \begin{aligned}
-    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{true} \\
+    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{even}(x) \\
     \text{even}(p(0)) &\rightarrow \text{false} &
     \text{even}(p(p(x))) &\rightarrow \text{even}(x) \\ 
     s(p(x)) &\rightarrow x & p(s(x)) &\rightarrow x
@@ -252,29 +232,13 @@ by any left hand side.
 The difference between the notions of pattern completeness and
 quasi-reducibility is also illustrated by Example
 <a href="#quasi-ex" data-reference-type="ref"
-data-reference="quasi-ex">8</a>, in which it is algorithmically
+data-reference="quasi-ex">7</a>, in which it is algorithmically
 confirmed that $`\mathcal{R}_{\mathbb{Z}}`$ is not pattern complete, and
 in Example <a href="#quasi-ex-alg" data-reference-type="ref"
-data-reference="quasi-ex-alg">11</a> in which it is algorithmically
+data-reference="quasi-ex-alg">10</a> in which it is algorithmically
 confirmed to be quasi-reducible.
 
-# Literature Review
-
-This section, describes the bodies of literature the paper is interested
-in. It begins by examining the main interest, namely the paper by
-Thiemann and Yamada. Most attention is spent on this paper, their
-algorithm is introduced and its correctness and properties are
-discussed. Furthermore, some examples of certain are used to illustrate
-the behaviour of the algorithm.
-
-Following, the *complement algorithm* by Lazrek et al. is detailed, an
-algorithm to decide sufficient completeness (and indirectly also pattern
-completeness, as shown later). Finally, a tree automata-based
-construction is presented that can be used to decide pattern
-completeness. At the end of the section, further literature of interest
-is briefly listed.
-
-## Thiemann and Yamada
+# Thiemann and Yamada’s algorithm
 
 The algorithm presented in the paper of Thiemann and Yamada works on
 multisets of pattern problems and applies rules on the innermost
@@ -289,7 +253,7 @@ rules:
 ``` math
 \begin{aligned}
 \textbf{decompose} & & \{(f(t_1, ..., t_n), f(l_1, ..., l_n))\} &\rightarrow \{(t_1, l_1), ..., (t_n, l_n)\} \\
-\textbf{match} & & \{(t, x)\} &\rightarrow \varnothing \text{ if } \forall (t', l) \in mp \text{. } x \notin Var(l) \\
+\textbf{match} & & \{(t, x)\} \in mp &\rightarrow \varnothing \text{ if } \forall (t', l) \in mp \text{. } x \notin Var(l) \\
 \textbf{clash} & & \{(f(...), g(...))\} &\rightarrow \bot_{mp}\text{ if }f \neq g
 \intertext{For pattern problems (sets of matching problems – denoted as $pp$), the following rules apply:}
 \textbf{remove-mp} & & \{\bot_{mp}\} &\rightarrow \varnothing \\
@@ -301,10 +265,14 @@ rules:
 \end{aligned}
 ```
 
-The last rule is applicable in case variable $`x`$ is tried to be
-matched with some non-variable term $`f(...)`$. In this case, we
-construct a new pattern problem $`pp\sigma_{x,c}`$ for each constructor
-in $`\mathcal{C}`$, given as:
+The **match** rule removes a matching problem from the set in case
+variable $`x`$ does not occur in any other matching problems in the same
+set. This intuitively mean, we match variable $`x`$ to $`t`$.
+
+The last rule, **instantiate**, is applicable in case variable $`x`$ is
+tried to be matched with some non-variable term $`f(...)`$. In this
+case, we construct a new pattern problem $`pp\sigma_{x,c}`$ for each
+constructor in $`\mathcal{C}`$, given as:
 ``` math
 pp\sigma_{x,c} = \{\{ (t\sigma_{x,c},l) \mid (t,l) \in mp\} \mid mp \in pp\}
 ```
@@ -312,7 +280,7 @@ where
 ``` math
 \sigma_{x,c} = [x \mapsto c(x_1, ..., x_n)]
 ```
-for each $`c \in \mathcal{C}`$ of arity n, and fresh variables
+for each $`c \in \mathcal{C}`$ of arity $`n`$, and fresh variables
 $`x_1, ..., x_n`$.
 
 In order the deal with non-linearity, further rules are introduced so
@@ -328,7 +296,8 @@ are as follows:
 ```
 
 In case of **instantiate’**, we can apply the rule if $`t`$ and $`t'`$
-differ in variable $`x`$ of finite sort.
+differ in variable $`x`$ of finite sort (such that
+$`\{t \mid t : \iota \in \mathcal{T}(\mathcal{C})\}`$ is a finite set).
 
 In case of **failure’**, we need to fail the algorithm if within each
 $`mp \in pp`$ there exists $`\{(t,x),(t',x)\}`$ such that $`t`$ and
@@ -352,7 +321,7 @@ implementation are given as follows:
 3.  Invoke **instantiate** or **instantiate’** with preference for the
     former
 
-### Examples
+## Examples
 
 The following examples illustrate certain executions of the algorithm.
 We assume the sort of natural numbers with one defined symbol
@@ -362,7 +331,7 @@ $`\mathcal{C}_{\mathbb{N}} = \{0 : \mathbb{N}, s(x) : \mathbb{N} \rightarrow \ma
 
 <div id="ex-thiemann-lin" class="example">
 
-**Example 4**. Linear case
+**Example 3**. Linear case
 
 Given a left-hand side of $`\{f(0), f(s(x))\}`$, the linear algorithm
 would compute:
@@ -386,7 +355,7 @@ The algorithm concludes that the left hand sides are pattern complete.
 
 <div id="ex-thiemann-lin-fail" class="example">
 
-**Example 5**. Linear case failure
+**Example 4**. Linear case failure
 
 The following example demonstrates how the algorithm would find an
 incomplete pattern:
@@ -410,7 +379,7 @@ problem reduces to $`\bot_{P}`$.
 
 <div id="example-general" class="example">
 
-**Example 6**. General case
+**Example 5**. General case
 
 Given defined symbol
 $`f : \mathbb{N} \times \mathbb{N} \rightarrow \mathbb{N}`$ the
@@ -432,13 +401,13 @@ $`\{\{f(x, x)\}, \{f(x, y)\}\}`$ the algorithm would compute:
 
 <div class="example">
 
-**Example 7**. Linear algorithm with non-linear input
+**Example 6**. Linear algorithm with non-linear input
 
 The following example illustrates that the additional rules to match
 non-linear inputs are necessary to decide pattern completeness, using
 the non-linear left-hand side from Example
 <a href="#example-general" data-reference-type="ref"
-data-reference="example-general">6</a>:
+data-reference="example-general">5</a>:
 ``` math
 \begin{aligned}
     P &= \{\{\{(f(a, b), f(x, x))\}\}\}\\
@@ -458,11 +427,11 @@ case.
 
 <div id="quasi-ex" class="example">
 
-**Example 8**. Quasi-reducible LHS is not pattern complete
+**Example 7**. Quasi-reducible LHS is not pattern complete
 
 Let us apply the algorithm to Example
 <a href="#quasi-intro" data-reference-type="ref"
-data-reference="quasi-intro">1.3</a>. In that example the following term
+data-reference="quasi-intro">2.2</a>. In that example the following term
 rewriting system $`\mathcal{R}_{\mathbb{Z}}`$ is presented, using
 ``` math
 \mathcal{C}_{\mathbb{Z}} = \{\text{true}: \mathbb{B}, \text{false}: \mathbb{B}, 0: \mathbb{Z}, s: \mathbb{Z} \rightarrow \mathbb{N}, p: \mathbb{Z} \rightarrow \mathbb{N}\}
@@ -496,16 +465,20 @@ $`\bot_{P}`$.
 
 </div>
 
-### Analysis
+## Analysis
 
-In this section we shall explore the correctness of the algorithm.
+This sections details the correctness of the algorithm. Firstly, that
+the reduction steps have normal form $`\{\varnothing, \bot_{P}\}`$,
+secondly, that the algorithm terminates, by defining a measure of
+difference between pattern problems and showing that each step decreases
+in this order.
 
 The normal forms of the reduction steps is one of
 $`\{\varnothing, \bot_{P}\}`$. The algorithm iteratively removes
 matching problems with **match** or marks them incomplete with
 **clash**. Using the definition of completeness in Section
 <a href="#def-pattern-complete" data-reference-type="ref"
-data-reference="def-pattern-complete">1.2</a>, a pattern problem $`pp`$
+data-reference="def-pattern-complete">2.1</a>, a pattern problem $`pp`$
 is complete if for each constructor ground substitution $`\sigma`$,
 there exists a matching problem $`mp \in pp`$ that is complete.
 Therefore, the pattern problem is marked $`\top_{pp}`$ by **success**
@@ -520,12 +493,12 @@ successful is an empty pattern problem $`\{\varnothing\}`$. Furthermore,
 what leads to the whole execution marked as failure is a pattern problem
 containing only $`\bot_{mp}`$. The reader can refer to the examples in
 Section <a href="#examples-alg" data-reference-type="ref"
-data-reference="examples-alg">2.1.1</a> for further clarification.
+data-reference="examples-alg">3.1</a> for further clarification.
 
-Furthermore, the algorithm is shown to be decidable and terminating when
-the set of pattern problems are left-linear. The termination proof is
-given by defining a measure of difference $`\abs{\ell - t}`$ between
-terms $`(\ell, t)`$ of a matching problem as:
+Furthermore, the algorithm is shown to be decidable and terminating .
+The termination proof for the left-linear case is given by defining a
+measure of difference $`\abs{\ell - t}`$ between terms $`(\ell, t)`$ of
+a matching problem as:
 
 - $`\abs{\ell - x}`$ the number of function symbols in $`\ell`$
 
@@ -546,16 +519,16 @@ P \succ P' \iff \{\abs{pp}_\text{diff} \mid pp \in P\} >^{\text{mul}} \{\abs{pp'
 algorithm weakly decreases, while the instantiate rule strictly
 decreases with respect to $`\succ`$ .
 
-## Lazrek et al.
+# Complement algorithm
 
-The *complement algorithm* presented by Lazrek et al. in , represents a
-mechanism to conclude whether in a TRS $`\mathcal{R}`$, a defined symbol
-$`f`$ (called operator in the paper) is convertible to a set of
-constructors, denoted as *relative* completeness. The algorithm can also
-be used to decide quasi-reducibility and indirectly pattern
+The *complement algorithm* presented by Lazrek, Lescanne, and Thiel in ,
+represents a mechanism to conclude whether in a TRS $`\mathcal{R}`$, a
+defined symbol $`f`$ (called operator in the paper) is convertible to a
+set of constructors, denoted as *relative* completeness. The algorithm
+can also be used to decide quasi-reducibility and indirectly pattern
 completeness, as demonstrated by Example
 <a href="#quasi-ex-alg" data-reference-type="ref"
-data-reference="quasi-ex-alg">11</a>. The main idea behind the algorithm
+data-reference="quasi-ex-alg">10</a>. The main idea behind the algorithm
 is to compute the *complement* of matched terms, then iteratively check
 whether the complement can be further reduced or matched. The complement
 of a term $`t`$ means the ground terms of $`t`$ and the complement of
@@ -565,16 +538,12 @@ The algorithm works on pairs of sets $`M_i`$ and $`N_i`$, each iteration
 $`M_{i+1}`$ and $`N_{i+1}`$ are constructed from their previous
 counterpart. The algorithm starts by setting $`M_0`$ as the set
 representing the left-hand sides of $`\mathcal{R}`$, and the set $`N_0`$
-as the set of ground instances of $`f`$ of the form $`f(x_1, ..., x_n)`$
+as the set of ground instances of $`f`$ of the form $`f(z_1, ..., z_n)`$
 where $`f \in \mathcal{D}`$. The algorithm then iteratively tries to
-unify elements of $`N_0`$ with the elements of $`M_0`$ with a linear
-substitution $`\sigma`$. In case such a linear substitution is found,
-the matched elements $`m \in M`$ and $`n \in N`$ are removed from
-$`M_i`$ and $`N_i`$ and new sets $`M_{i+1}`$ and $`N_{i+1}`$ are
-constructed. Elements $`m`$ and $`n`$ are removed from their respective
-sets and new elements in $`\{m\rho\}`$ and $`\{n\rho\}`$ are added.
-Substitution $`\rho_i`$ is the set $`C(\sigma)`$ of complement of
-substitution of $`\sigma`$, i.e.:
+unify elements of $`N_0`$ with the elements of $`M_0`$ with a
+substitution $`\sigma`$. In case such a substitution is found, the
+matched elements $`m \in M`$ and $`n \in N`$ are removed from $`M_i`$
+and $`N_i`$ and new sets $`M_{i+1}`$ and $`N_{i+1}`$ are constructed by:
 ``` math
 \begin{aligned}
     M_{i+1} &= M_{i-1} \setminus \{m\} \cup \{m\rho \mid \rho \in C(\sigma), m\rho \neq m\sigma\} \\
@@ -584,13 +553,10 @@ substitution of $`\sigma`$, i.e.:
 
 The complement of a substitution $`\sigma`$ defined as the set
 $`C(\sigma)`$ of all substitutions $`\rho`$ different from $`\sigma`$,
-having the same domain and mapping elements to complementary terms.
-
-The *complement* of a ground term $`t = c_j(t_1, ... , t_n)`$ given
-$`\mathcal{C} = \{c_1, ..., c_n\}`$, $`1 \leq j \leq n`$ is the set
-$`C(t)`$, such that $`C(x) = \{x\}`$ given $`x \in \mathcal{X}`$,
-otherwise the set
-$`\{c_i(C(t_1), ..., C(t_n) \mid 1\leq i \leq n, i \neq j\}`$.
+having the same domain and mapping elements to complementary term. The
+complement of a term $`t`$ is defined as the finite set such that the
+ground terms of $`t`$ and the ground terms of the set of complement
+terms equal the set of constructor terms.
 
 The algorithm continues until $`M_{last}`$ or $`N_{last}`$ are empty
 (i.e. the last pair of $`M`$ and $`N`$ sets), or no further unification
@@ -612,12 +578,14 @@ empty), or the elements of $`N_{last}`$ can further be reduced.
 Pattern completeness is given in case both $`M_{last}`$ and $`N_{last}`$
 are empty.
 
+## Examples
+
 <div class="example">
 
-**Example 9**. Let us take an example execution of the algorithm on the
+**Example 8**. Let us take an example execution of the algorithm on the
 same input as Example
 <a href="#ex-thiemann-lin" data-reference-type="ref"
-data-reference="ex-thiemann-lin">4</a>.
+data-reference="ex-thiemann-lin">3</a>.
 
 ``` math
 \begin{aligned}
@@ -643,9 +611,9 @@ empty, the definition of $`f`$ is said to be *relatively complete*.
 
 <div class="example">
 
-**Example 10**. The counterpart of Example
+**Example 9**. The counterpart of Example
 <a href="#ex-thiemann-lin-fail" data-reference-type="ref"
-data-reference="ex-thiemann-lin-fail">5</a>:
+data-reference="ex-thiemann-lin-fail">4</a>:
 
 ``` math
 \begin{aligned}
@@ -667,12 +635,12 @@ reducable), therefore $`f`$ is not relatively complete.
 
 <div id="quasi-ex-alg" class="example">
 
-**Example 11**. Finally, the quasi-reducible system
+**Example 10**. Finally, the quasi-reducible system
 $`\mathcal{R}_\mathbb{Z}`$ from Examples
 <a href="#quasi-ex-complete" data-reference-type="ref"
-data-reference="quasi-ex-complete">3</a>,
+data-reference="quasi-ex-complete">2</a>,
 <a href="#quasi-ex" data-reference-type="ref"
-data-reference="quasi-ex">8</a>:
+data-reference="quasi-ex">7</a>:
 ``` math
 \begin{aligned}
     M_0 &= \{even(0), even(s(0)), even(s(s(x))), even(p(0)), even(p(p(x)))\} \\
@@ -687,7 +655,7 @@ data-reference="quasi-ex">8</a>:
 ```
 
 Note the fact that $`M_0`$ does not contain left-hand sides $`s(p(x))`$
-and $`p(s(x))`$ since they are not about ground terms of $`even(z)`$.
+and $`p(s(x))`$ since they are not ground terms of the form $`even(z)`$.
 
 In the first step we unify via $`\sigma = \{z \mapsto 0\}`$, then apply
 $`C(\sigma)`$, i.e.: $`\{z \mapsto s(z)\}`$ and $`\{z \mapsto p(z)\}`$.
@@ -704,26 +672,31 @@ needs to be defined.
 
 </div>
 
-## Tree automata-based algorithms
+# Tree automata-based algorithms
 
 Pattern completeness of left-linear systems can also be verified using
 tree automata based solution, e.g. with the framework developed by
-Middeldorp et al. in or by Bouhoula et al. in . The experiments done by
-Thiemann in Yamada in construct tree automata $`\mathcal{A}`$ and
-$`\mathcal{B}`$ for their test cases and verify the language inclusion
-problem $`\mathcal{L}(\mathcal{A}) \subseteq \mathcal{L}(\mathcal{B})`$
-via the framework.
+Middeldorp et al. in or by Bouhoula and Jacquemard in . The experiments
+done by Thiemann and Yamada in construct tree automata $`\mathcal{A}`$
+and $`\mathcal{B}`$ for their test cases and verify the language
+inclusion problem
+$`\mathcal{L}(\mathcal{A}) \subseteq \mathcal{L}(\mathcal{B})`$ via the
+framework.
 
-Tree automaton $`\mathcal{A}`$ over an alphabet $`\mathcal{F}`$ is
+A tree automaton $`\mathcal{A}`$ over an alphabet $`\mathcal{F}`$ is
 defined as the 4-tuple $`(Q,\mathcal{F},Q_f,\Delta)`$, where $`Q`$ is
 the set of states, $`Q_f \subseteq Q`$ are the final states, $`\Delta`$
-are the transition rules between states. A term is accepted by
-$`\mathcal{A}`$ if $`t \xrightarrow[\mathcal{A}]{*} q(t), q \in Q_f`$.
-Bottom-up tree automata start their computation at the leaves of the
-tree and move upwards, in contrast with top-down tree automata which
-start at the root. The language $`\mathcal{L}(\mathcal{A})`$ of tree
-automaton $`\mathcal{A}`$ is defined as the set of ground terms accepted
-by $`\mathcal{A}`$ .
+are the transition rules between states. Transition rules are defined as
+the set of rules of the form
+$`f(q_1(x_1), ..., q_n(x_n)) \rightarrow q(f(x_1, ..., x_n))`$, where
+$`n \geq 0`$, $`f \in \mathcal{F}_n`$, $`q, q_1, ..., q_n \in Q`$,
+$`x_1, ..., x_n \in \mathcal{X}`$. A term is accepted by $`\mathcal{A}`$
+if $`t \xrightarrow[\mathcal{A}]{*} q(t), q \in Q_f`$. Bottom-up tree
+automata start their computation at the leaves of the tree and move
+upwards, in contrast with top-down tree automata which start at the
+root. The language $`\mathcal{L}(\mathcal{A})`$ of tree automaton
+$`\mathcal{A}`$ is defined as the set of ground terms accepted by
+$`\mathcal{A}`$ .
 
 To translate pattern problems to tree automata domain, the following
 construction can be used, as demonstrated in the paper of Thiemann and
@@ -743,7 +716,7 @@ The framework by Middeldorp et al. constructs bottom-up tree automata to
 verify properties thereof, whereas the algorithm by Bouhoula et al.
 construct many-rooted top-down tree automata.
 
-## Further notable work
+# Further notable work
 
 In , Thiel introduces calculus of components, on which the paper by
 Lazrek et al. is based. The complement of a term $`t`$ in
@@ -751,13 +724,13 @@ $`\mathcal{T}(\mathcal{C}, \mathcal{X})`$ is defined as the finite set
 $`T \subseteq \mathcal{T}(\mathcal{C}, \mathcal{X})`$ such that
 $`G(t) \cup G(T) = \mathcal{T}(\mathcal{C})`$, i.e. the union ground
 terms of $`t`$ and $`T`$ equal the constructor ground terms. Their
-algorithm detail a way to decide sufficient completeness, similar to the
-complement algorithm of .
+algorithm details a way to decide sufficient completeness, similar to
+the complement algorithm of .
 
 Decidability of quasi-reducibility was shown by Kapur et al. in . Their
 algorithm, however, is impractical in practice, as it has exponential
 best-case complexity. The *complement algorithm* by Lazrek et al. is a
-refinement on this paper.
+refinement of this paper.
 
 In , Aoto and Toyama introduce *strong quasi-reducibility*, in their
 paper Ground Confluence Prover based on Rewriting Induction. Strong
@@ -765,13 +738,14 @@ quasi-reducibility extends quasi-reducibility to term rewriting systems
 with non-free constructors, i.e. constructors that can be further
 reduced in the system.
 
-Cynthia Kop derived quasi-reducibility in logically constrained term
-rewriting systems in . These logically constrained TRSs are of the
-nature: e.g. "rule $`x \rightarrow y`$ is applicable only if $`x > 5`$".
+Cynthia Kop presented and algorithm to decide quasi-reducibility in
+logically constrained term rewriting systems in . These logically
+constrained TRSs are of the nature: e.g. "rule $`x \rightarrow y`$ is
+applicable only if $`x > 5`$".
 
-Bouhoula et al. constructed a tree-automata based framework to decide
-sufficient completeness of logically constrained term rewrite systems in
-.
+Bouhoula and Jacquemard constructed a tree-automata based framework to
+decide sufficient completeness of logically constrained term rewrite
+systems in .
 
 The Glasgow Haskell Compiler performs pattern completeness checks by
 enabling `-Wincomplete-patterns`. It applies, however, only to linear
@@ -779,20 +753,20 @@ patterns, as non-linear patterns like `f a a = ...` are not allowed by
 the language, they need to be simulated by guards like
 `f x y | x == y = ...`.
 
-# Discussion
+# Comparison
 
 Both algorithms presented by Thiemann and Yamada in and by Lazrek et al.
 in are able to decide whether a given term rewrite system is pattern
 complete. The focus of the complement algorithm is to conclude relative
 completeness, however, one can make use of $`N_{last}`$ to conclude
-whether the program is also pattern complete. Namely, when that is not
-empty, the set contains the patterns where the program still needs to be
-defined. One notable difference between the two algorithms is that the
-refined version of Thiemann and Yamada’s proven to work with non-linear
-patterns, whereas, the algorithm by Lazrek et al. might not. The paper
-by Lazrek et al. mentions certain examples of non-linearity where the
-algorithm successfully completes, but also in cases where it would get
-stuck.
+whether the program is also pattern complete. Namely, when $`N_{last}`$
+is not empty, the set contains the patterns where the program still
+needs to be defined. One notable difference between the two algorithms
+is that the refined version of Thiemann and Yamada’s proven to work with
+non-linear patterns, whereas, the algorithm by Lazrek et al. might not.
+The paper by Lazrek et al. mentions certain examples of non-linearity
+where the algorithm successfully completes, but also in cases where it
+would get stuck.
 
 Another aspect that makes the complement algorithm interesting is its
 ability of counterexample generation. By default the contents of
@@ -805,6 +779,8 @@ Tree automata have proven useful for deciding pattern completeness and
 related notions, but current algorithms e.g. in are restricted to
 left-linear systems.
 
+## Further questions
+
 One question that might arise after reviewing the above papers, is that
 it remains to be seen how these algorithms would perform on a more
 exhaustive performance testing against each other. Namely, the examples
@@ -812,12 +788,12 @@ created by Thiemann and Yamada clearly give the upper hand to their
 algorithm, however, their method of example generation seems a bit
 contrived. One might wonder how the algorithms would fare on more
 "typical" inputs such as small functional programs from existing
-projects. Moreover, the algorithms the Thiemann and Yamada paper check
-against are not implemented or in any case tuned by the authors, but are
-being used from 3rd party tools such as the ground confluence prover of
-Aoto and Toyama , or the tree automata framework developed by Middeldorp
-et al.. This fact might explain the constant factor performance
-difference between the runtimes.
+projects. Moreover, the algorithms that Thiemann and Yamada’s are
+checked against are not implemented or in any case tuned by the authors,
+but are being used from 3rd party tools such as the ground confluence
+prover of Aoto and Toyama , or the tree automata framework developed by
+Middeldorp et al.. This fact might explain the constant factor
+performance difference between the runtimes.
 
 Finally, as suggested by Thiemann and Yamada, it remains to be seen
 whether their algorithm can be adjusted to decide quasi-reducibility, or
@@ -833,7 +809,7 @@ $`\ell \in L`$. The notion of quasi-reducibility was also introduced
 that relaxes the pattern completeness definition, allowing for matching
 to happen under the root.
 
-The main focus of the literature review is to detail the algorithm by
+The main focus of the literature review is to discuss the algorithm by
 Thiemann and Yamada and compare and contrast it with the *complement
 algorithm* of Lazrek et al. . Moreover, frameworks using tree automata
 are proven useful for deciding pattern completeness and related
@@ -841,14 +817,15 @@ definitions. Therefore, a short introduction of this construction is
 also discussed. Finally, a short survey of related literate is also
 included at the end of Section
 <a href="#review" data-reference-type="ref"
-data-reference="review">2</a>.
+data-reference="review">[review]</a>.
 
 Further research, as discussed in Section
 <a href="#discussion" data-reference-type="ref"
-data-reference="discussion">3</a>, could explore a more detailed and
+data-reference="discussion">7</a>, could explore a more detailed and
 exhaustive performance comparison of the discussed algorithms. Moreover,
 as per , it remains open to construct a similar syntax-based algorithm
 to decide quasi-reducibility.
+
 
 ---
 nocite: \[@\*\]
