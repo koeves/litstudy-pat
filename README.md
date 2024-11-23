@@ -106,6 +106,13 @@ otherwise the set
 $`\{\epsilon\} \cup \{ip \mid p \in \mathcal{P}os(t_i)\}`$. By $`t|_p`$
 we note the subterm of $`t`$ at position $`p`$.
 
+Given a set of sorts $`\mathcal{S}`$, a sorted set $`\mathcal{V}`$ is a
+set in which each element is associated with a sort
+$`\iota \in \mathcal{S}`$ written as $`v : \iota \in \mathcal{V}`$.
+Given a sorted signature $`\mathcal{F}`$ and sorted set of variables
+$`\mathcal{V}`$, we define sorted terms as
+$`\mathcal{T}(\mathcal{F}, \mathcal{V})`$.
+
 A substitution $`\sigma`$ is a mapping
 $`\mathcal{X} \rightarrow \mathcal{T}(\Sigma, \mathcal{X})`$. Notations
 include $`\sigma(t)`$, $`t\sigma`$ or $`t^\sigma`$, all meaning the
@@ -655,7 +662,7 @@ data-reference="quasi-ex">7</a>:
 ```
 
 Note the fact that $`M_0`$ does not contain left-hand sides $`s(p(x))`$
-and $`p(s(x))`$ since they are not ground terms of the form $`even(z)`$.
+and $`p(s(x))`$ since the top-level function symbol is not even.
 
 In the first step we unify via $`\sigma = \{z \mapsto 0\}`$, then apply
 $`C(\sigma)`$, i.e.: $`\{z \mapsto s(z)\}`$ and $`\{z \mapsto p(z)\}`$.
@@ -739,9 +746,8 @@ with non-free constructors, i.e. constructors that can be further
 reduced in the system.
 
 Cynthia Kop presented and algorithm to decide quasi-reducibility in
-logically constrained term rewriting systems in . These logically
-constrained TRSs are of the nature: e.g. "rule $`x \rightarrow y`$ is
-applicable only if $`x > 5`$".
+logically constrained term rewrite systems in . These LCTRSs are of the
+nature e.g. "rule $`x \rightarrow y`$ is applicable only if $`x > 5`$".
 
 Bouhoula and Jacquemard constructed a tree-automata based framework to
 decide sufficient completeness of logically constrained term rewrite
@@ -779,7 +785,7 @@ Tree automata have proven useful for deciding pattern completeness and
 related notions, but current algorithms e.g. in are restricted to
 left-linear systems.
 
-## Further questions
+#### Further questions
 
 One question that might arise after reviewing the above papers, is that
 it remains to be seen how these algorithms would perform on a more
@@ -825,6 +831,7 @@ data-reference="discussion">7</a>, could explore a more detailed and
 exhaustive performance comparison of the discussed algorithms. Moreover,
 as per , it remains open to construct a similar syntax-based algorithm
 to decide quasi-reducibility.
+
 
 
 ---
