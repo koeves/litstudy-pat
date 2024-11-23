@@ -70,6 +70,7 @@ Given a left-hand side of $\{f(0), f(s(x))\}$, the linear algorithm would comput
 
 The algorithm concludes that the left hand sides are pattern complete.
 
+\newpage
 \begin{example} Linear case failure \label{ex-thiemann-lin-fail}
 
 The following example demonstrates how the algorithm would find an incomplete pattern:
@@ -207,7 +208,7 @@ In the first step we try to unify $f(succ(x))$ with $f(z)$. This we can do via $
     N_3 &= \{even(s(p(z))), even(p(s(z)))\}
 \end{align*}
 
-Note the fact that $M_0$ does not contain left-hand sides $s(p(x))$ and $p(s(x))$ since they are not ground terms of the form $even(z)$.
+Note the fact that $M_0$ does not contain left-hand sides $s(p(x))$ and $p(s(x))$ since the top-level function symbol is not even.
 
 In the first step we unify via $\sigma = \{z \mapsto 0\}$, then apply $C(\sigma)$, i.e.: $\{z \mapsto s(z)\}$ and $\{z \mapsto p(z)\}$. We apply the same substitutions again to arrive at $M_2$. There, terms $even(s(s(x)))$ and $even(p(p(x)))$ are trivially matched by $even(s(s(z)))$ and $even(p(p(z)))$, therefore these pairs are removed. Finally, $M_3$ is empty so the algorithm stops. $N_3$ contains the patterns that are not defined for $even$, however, both these terms are further $\mathcal{R}_\mathbb{Z}$-reducible by the rules. Therefore, the definition of $even$ is relatively complete. We can notice that the algorithm indirectly also proven pattern incompleteness, as $N_3$ contains patterns where the function $even$ needs to be defined.
 
@@ -229,7 +230,7 @@ Decidability of quasi-reducibility was shown by Kapur et al. in \cite{kapur}. Th
 
 In \cite{aoto}, Aoto and Toyama introduce \textit{strong quasi-reducibility}, in their paper Ground Confluence Prover based on Rewriting Induction. Strong quasi-reducibility extends quasi-reducibility to term rewriting systems with non-free constructors, i.e. constructors that can be further reduced in the system.
 
-Cynthia Kop presented and algorithm to decide quasi-reducibility in logically constrained term rewriting systems in \cite{cynthia}. These logically constrained TRSs are of the nature: e.g. "rule $x \rightarrow y$ is applicable only if $x > 5$".
+Cynthia Kop presented and algorithm to decide quasi-reducibility in logically constrained term rewrite systems in \cite{cynthia}. These LCTRSs are of the nature e.g. "rule $x \rightarrow y$ is applicable only if $x > 5$".
 
 Bouhoula and Jacquemard constructed a tree-automata based framework to decide sufficient completeness of logically constrained term rewrite systems in \cite{bouhoula}.
 

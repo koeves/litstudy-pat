@@ -5,7 +5,7 @@ Another aspect that makes the complement algorithm interesting is its ability of
 
 Tree automata have proven useful for deciding pattern completeness and related notions, but current algorithms e.g. in \cite{middeldorp} are restricted to left-linear systems.
 
-\subsection{Further questions}
+\paragraph{Further questions}
 One question that might arise after reviewing the above papers, is that it remains to be seen how these algorithms would perform on a more exhaustive performance testing against each other. Namely, the examples created by Thiemann and Yamada clearly give the upper hand to their algorithm\cite{thiemann}, however, their method of example generation seems a bit contrived. One might wonder how the algorithms would fare on more "typical" inputs such as small functional programs from existing projects. Moreover, the algorithms that Thiemann and Yamada's are checked against are not implemented or in any case tuned by the authors, but are being used from 3rd party tools such as the ground confluence prover of Aoto and Toyama \cite{aoto}, or the tree automata framework developed by Middeldorp et al.\cite{middeldorp}. This fact might explain the constant factor performance difference between the runtimes.
 
 Finally, as suggested by Thiemann and Yamada, it remains to be seen whether their algorithm can be adjusted to decide quasi-reducibility, or whether a similar syntax-directed algorithm can be constructed.
