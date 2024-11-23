@@ -6,7 +6,7 @@ The main entry-point of the review is the paper by Thiemann and Yamada \cite{thi
 
 The organisation of the paper is the following: the rest of section \ref{intro} introduces some mathematical preliminaries and details the problem at hand – pattern completeness and quasi-reducibility of term rewrite systems. The algorithm in the Thiemann and Yamada paper is explored in detail and analysed in section \ref{thiemann-yamada}, whereas the complement algorithm is presented in the sections following it. The paper also briefly mentions further notable related work, such as quasi-reducibility and decidability thereof as presented by Kapur et al \cite{kapur}, further techniques for pattern matching and pattern completeness in section \ref{notable-work}. Following the review, the main algorithms are compared and their differences are discussed in section \ref{discussion}, and finally, concluding remarks are found in section \ref{conclusion}.
 
-The main focus of the review is to discuss algorithms for deciding pattern completeness. The notion of pattern completeness comes up in functional programming, namely, most languages that work by means of pattern matching require (or in other cases – warn) that the defined patterns are incomplete. Running a program with an incomplete pattern would result in untimely termination of the program with an exception. Figure \ref{fig:haskell-incomplete} shows such an example, the case matching \texttt{Nothing} is missing.
+The main focus of the review is to discuss algorithms for deciding pattern completeness. The notion of pattern completeness comes up in functional programming, namely, most languages that work by means of pattern matching require that the defined patterns are complete (and warn otherwise). Running a program with an incomplete pattern would result in untimely termination of the program with an exception. These runtime errors are the "worst" type of errors a program can encounter, therefore, it is crucial to ensure it does not happen. Figure \ref{fig:haskell-incomplete} shows such an example, the case matching \texttt{Nothing} is missing.
 
 \begin{figure}[!ht]
 \centering
@@ -18,12 +18,12 @@ maybeAddOne (Just n) = n + 1
     \label{fig:haskell-incomplete}
 \end{figure}
 
-It is, therefore, crucial to ensure that patterns are complete. A related notion for term rewriting systems is quasi-reducibility introduced in \cite{kapur}, that ensures that the evaluation cannot get stuck. The difference between the two notions are discussed in section \ref{quasi-intro}.
+A notion related to pattern completeness is quasi-reducibility \cite{kapur}, that ensures that the evaluation cannot get stuck. The difference between the two notions are discussed in section \ref{quasi-intro}.
 
-\subsection{Preliminaries and Notation}
+\section{Preliminaries}
 Given a signature $\Sigma$ a set of function symbols $f \in \Sigma$ and a set of variables $\mathcal{X}$, we say that terms $\mathcal{T}(\Sigma, \mathcal{X})$ are the smallest set such that $\mathcal{X} \subseteq \mathcal{T}(\Sigma, \mathcal{X})$ and $f(t_1, ..., t_n) \in \mathcal{T}(\Sigma, \mathcal{X})$ given $f \in \Sigma$ of arity $n$ and variables $t_1, ..., t_n \in \mathcal{X}$. By $\mathcal{V}ar(t)$ we denote the set of variables in $t$. Ground terms, denoted as $T(\Sigma)$ are terms without variables. A term $s$ is subterm of $t$ if $s = t$ or $t = f(t_1, ..., t_n)$ and s is subterm of some $t_i$ given $1 \leq i \leq n$. A set of positions $\mathcal{P}os(t)$ of term $t$ is defined as the set $\{\epsilon\}$ when $t \in \mathcal{X}$, otherwise the set $\{\epsilon\} \cup \{ip \mid p \in \mathcal{P}os(t_i)\}$. By $t|_p$ we note the subterm of $t$ at position $p$.
 
-Given a set of sorts $\mathcal{S}$, a sorted set $\mathcal{V}$ is a set in which each element is associated with a sort $\iota \in \mathcal{S}$ written as $v : \iota \in \mathcal{V}$. Given a sorted signature $\mathcal{F}$ and sorted set of variables $\mathcal{V}$, we define sorted terms as $\mathcal{T}(\mathcal{F}, \mathcal{V})$. 
+% Given a set of sorts $\mathcal{S}$, a sorted set $\mathcal{V}$ is a set in which each element is associated with a sort $\iota \in \mathcal{S}$ written as $v : \iota \in \mathcal{V}$. Given a sorted signature $\mathcal{F}$ and sorted set of variables $\mathcal{V}$, we define sorted terms as $\mathcal{T}(\mathcal{F}, \mathcal{V})$. 
 
 A substitution $\sigma$ is a mapping $\mathcal{X} \rightarrow \mathcal{T}(\Sigma, \mathcal{X})$. Notations include $\sigma(t)$, $t\sigma$ or $t^\sigma$, all meaning the substitution $\sigma$ applied to term $t$. 
 
@@ -31,21 +31,22 @@ A rewrite rule $(\ell \rightarrow r)$ is a pair $(\ell, r)$ such that $\ell \not
 
 A term rewrite system $\mathcal{R}$ is a pair $(\Sigma, R)$ where $R$ is a set of rewrite rules between $\mathcal{T}(\Sigma, \mathcal{X})$. In a TRS $\mathcal{R}$ over $\Sigma$, defined symbols $\mathcal{D}$ are the root function symbols of the left hand sides of the rewrite rules, and constructor terms $\mathcal{C}$ are defined as $\Sigma \setminus \mathcal{D}$. Inputs to functions are therefore represented by constructor ground terms.
 
-\begin{example}
-Consider the following term rewrite system representing Combinatory Logic $\mathcal{R}_{CL}$ given $\Sigma = \{S, K, I, \cdot\}$ with arities $\{0,0,0,2\}$ in this order. Rewrite rules are given as:
-\begin{align*}
-    I \cdot x &\rightarrow x \\
-    (K \cdot x) \cdot y &\rightarrow x \\
-    ((S \cdot x) \cdot y) \cdot z &\rightarrow (x \cdot z) \cdot (y \cdot z)
-\end{align*}
-\end{example}
+% \begin{example}
+% Consider the following term rewrite system representing Combinatory Logic $\mathcal{R}_{CL}$ given $\Sigma = \{S, K, I, \cdot\}$ with arities $\{0,0,0,2\}$ in this order. Rewrite rules are given as:
+% \begin{align*}
+%     I \cdot x &\rightarrow x \\
+%     (K \cdot x) \cdot y &\rightarrow x \\
+%     ((S \cdot x) \cdot y) \cdot z &\rightarrow (x \cdot z) \cdot (y \cdot z)
+% \end{align*}
+% \end{example}
 
 \subsection{Pattern Completeness and the Pattern Problem} \label{def-pattern-complete}
-The \textit{matching problem} asks, given two terms $s$ and $t$, whether there exists a substitution $\sigma$ such that $s\sigma = t$. A matching problem $mp$ is represented as a set $\{(t_1, \ell_1), ..., (t_n, \ell_n)\} \subseteq \mathcal{T}(\mathcal{F}, \mathcal{V}) \times \mathcal{T}(\mathcal{F}, \mathcal{X})$, assuming $\mathcal{V}$ and $\mathcal{X}$ do not overlap. A pattern problem $pp$ is a finite set of matching problems. A matching problem is complete, if given a constructor ground substitution $\sigma : \mathcal{V} \mapsto \mathcal{T}(\mathcal{C})$, there is substitution $\gamma : \mathcal{X} \mapsto \mathcal{T}(\mathcal{F})$ such that $t\sigma = \ell\gamma$ for all $(t, \ell) \in mp$. A pattern problem is complete if for each constructor ground substitution $\sigma$ there is some $mp \in pp$ that is complete. A set $P$ of pattern problems is complete if all $pp \in P$ are complete. 
+The \textit{matching problem} asks, given two terms $s$ and $t$, whether there exists a substitution $\sigma$ such that $s\sigma = t$. The direction is from $s$ to $t$, namely, we try to match $s$ to $t$ by $\sigma$. A matching problem $mp$ is represented as a set $\{(t_1, \ell_1), ..., (t_n, \ell_n)\} \subseteq \mathcal{T}(\mathcal{F}, \mathcal{V}) \times \mathcal{T}(\mathcal{F}, \mathcal{X})$, assuming $\mathcal{V}$ and $\mathcal{X}$ do not overlap. A pattern problem $pp$ is a finite set of matching problems. A matching problem is complete, if given a constructor ground substitution $\sigma : \mathcal{V} \mapsto \mathcal{T}(\mathcal{C})$, there is a substitution $\gamma : \mathcal{X} \mapsto \mathcal{T}(\mathcal{F})$ such that $t\sigma = \ell\gamma$ for all $(t, \ell) \in mp$. A pattern problem is complete if for each constructor ground substitution $\sigma$ there is some $mp \in pp$ that is complete. A set $P$ of pattern problems is complete if all $pp \in P$ are complete. 
 
-A program with left-hand sides $L$ is pattern complete, if every basic ground term of the form $f(t_1, ..., t_n)$ with $f \in \mathcal{D}$ and $\{t_1, ..., t_n\} \subseteq \mathcal{T}(\mathcal{C}, \mathcal{X})$ is matched by some $\ell \in L$. The question whether a program with left hand sides $L$ and defined symbols $\mathcal{D}$ is pattern complete can be expressed with the following set of pattern problems\cite{thiemann}:
+A program with left-hand sides $L$ is pattern complete, if every basic ground term – which are defined as terms of the form $f(t_1, ..., t_n)$ with $f \in \mathcal{D}$ and $\{t_1, ..., t_n\} \subseteq \mathcal{T}(\mathcal{C}, \mathcal{X})$ –, is matched by some $\ell \in L$. The question whether a program with left hand sides $L$ and defined symbols $\mathcal{D}$ is pattern complete can be expressed with the following set of pattern problems\cite{thiemann}:
 $$P = \{\{\{(f(x_1, ..., x_n), \ell)\} \mid \ell \in L\} \mid f: \iota_1, ..., \iota_n \rightarrow \iota_0 \in \mathcal{D}\}$$
 
+\newpage
 \begin{example} \label{example-even}
 Consider as example the following sorted term rewrite system to calculate whether a natural number is even. The TRS $\mathcal{R}_\mathbb{N}$ is given as, adapted from Example 1 in \cite{thiemann}:
 \begin{align*}
@@ -54,17 +55,17 @@ Consider as example the following sorted term rewrite system to calculate whethe
 \end{align*}
 with the following rules:
 \begin{align*}
-    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{true}
+    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{even}(x)
 \end{align*}
 In this setting consider the following matching problems:
 \begin{align*}
     mp_1 &= \{(z, 0)\} & mp_2 &= \{(\text{even}(z), 0)\}
 \end{align*}
-Matching problem $mp_1$ is complete with respect to $\sigma = \{z \mapsto 0\}$, however $mp_2$ is incomplete since there exists no $\sigma$ such that $\text{even}(x)^\sigma = 0$. The set of pattern problems describing this program would be: $$P = \{\{\{(\text{even}(z), \text{even}(0))\}, \{(\text{even}(z), \text{even}(s(x)))\}, \{(\text{even}(z), \text{even}(s(s(x))))\}\}\}$$
+Matching problem $mp_1$ is complete with respect to $\sigma = \{z \mapsto 0\}$, however $mp_2$ is incomplete since there exists no $\sigma$ such that $\text{even}(x)^\sigma = 0$. The set of pattern problems describing this program would be, where $z$ stands for some constructor ground term: $$P = \{\{\{(\text{even}(z), \text{even}(0))\}, \{(\text{even}(z), \text{even}(s(x)))\}, \{(\text{even}(z), \text{even}(s(s(x))))\}\}\}$$
 \end{example}
 
 \subsection{Quasi-reducibility} \label{quasi-intro}
-A related notion to pattern completeness is quasi-reducibility, the difference being that as per the definition in Section \ref{def-pattern-complete}, pattern completeness does not allow for matching below the root term. This condition is relaxed when talking about quasi-reducibility. The notion of quasi-reducibility aligns with \textit{sufficient} or \textit{relative completeness} in \cite{lazrek, thiel}.  Take as example the extended version of Example \ref{example-even} for integers using successor-predecessor notation, taken from Example 4 of the Thiemann and Yamada paper \cite{thiemann}.
+A notion related to pattern completeness is quasi-reducibility, the difference being that as per the definition in Section \ref{def-pattern-complete}, pattern completeness does not allow for matching below the root term. This condition is relaxed when talking about quasi-reducibility. The notion of quasi-reducibility aligns with \textit{sufficient} or \textit{relative completeness} in \cite{lazrek, thiel}.  Take as example the extended version of Example \ref{example-even} for integers using successor-predecessor notation, taken from Example 4 of the Thiemann and Yamada paper \cite{thiemann}.
 
 \begin{example} \label{quasi-ex-complete}
 Given TRS $\mathcal{R}_{\mathbb{Z}}$ using
@@ -74,7 +75,7 @@ Given TRS $\mathcal{R}_{\mathbb{Z}}$ using
 \end{align*}
 with rules:
 \begin{align*}
-    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{true} \\
+    \text{even}(0) &\rightarrow \text{true} & \text{even}(s(0)) &\rightarrow \text{false} & \text{even}(s(s(x))) &\rightarrow \text{even}(x) \\
     \text{even}(p(0)) &\rightarrow \text{false} &
     \text{even}(p(p(x))) &\rightarrow \text{even}(x) \\ 
     s(p(x)) &\rightarrow x & p(s(x)) &\rightarrow x
